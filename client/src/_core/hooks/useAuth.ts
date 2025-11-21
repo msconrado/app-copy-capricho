@@ -1,106 +1,85 @@
-import { getLoginUrl } from "@/const";
-import { trpc } from "@/lib/trpc";
-import { supabase } from "@/lib/supabase";
-import { TRPCClientError } from "@trpc/client";
-import { useCallback, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState, useCallback } from 'react';
+import { supabase } from '@/lib/supabase';
 
-type UseAuthOptions = {
-  redirectOnUnauthenticated?: boolean;
-  redirectPath?: string;
+type UseAuthState = {
+    user: any | null;
+    loading: boolean;
+    error: string | null;
+    isAuthenticated: boolean;
 };
 
-export function useAuth(options?: UseAuthOptions) {
-  const { redirectOnUnauthenticated = false, redirectPath = getLoginUrl() } =
-    options ?? {};
-  const utils = trpc.useUtils();
+export function useAuth() {
+    const [user, setUser] = useState<any | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-  const meQuery = trpc.auth.me.useQuery(undefined, {
-    retry: false,
-    refetchOnWindowFocus: false,
-  });
+    // Inicial: pega sessão atual
+    useEffect(() => {
+        let mounted = true;
+        (async () => {
+            try {
+                const { data } = await supabase.auth.getSession();
+                if (!mounted) return;
+                setUser(data.session?.user ?? null);
+            } catch (e: any) {
+                setError(String(e));
+            } finally {
+                if (mounted) setLoading(false);
+            }
+        })();
 
-  const logoutMutation = trpc.auth.logout.useMutation({
-    onSuccess: () => {
-      utils.auth.me.setData(undefined, null);
-    },
-  });
+        return () => {
+            mounted = false;
+        };
+    }, []);
 
-  const logout = useCallback(async () => {
-    try {
-      await logoutMutation.mutateAsync();
-    } catch (error: unknown) {
-      if (
-        error instanceof TRPCClientError &&
-        error.data?.code === "UNAUTHORIZED"
-      ) {
-        return;
-      }
-      throw error;
-    } finally {
-      // Clear client-side auth state: supabase session, local storage and app cookie
-      try {
-        await supabase.auth.signOut();
-      } catch (e) {
-        console.warn("Supabase signOut failed:", e);
-      }
+    // Listener de mudanças de sessão (login/logout)
+    useEffect(() => {
+        const { data: sub } = supabase.auth.onAuthStateChange(async (event, session) => {
+            // session pode ser null (logout)
+            setUser(session?.user ?? null);
+            // Se quiser: atualizar dados do usuário no seu storage local
+        });
 
-      try {
-        localStorage.removeItem("auth_token");
-        localStorage.removeItem("manus-runtime-user-info");
-      } catch (e) {
-        /* ignore */
-      }
+        return () => {
+            sub.subscription.unsubscribe();
+        };
+    }, []);
 
-      try {
-        // Clear the app session cookie client-side as an extra measure
-        document.cookie = `${import.meta.env.VITE_APP_SESSION_COOKIE_NAME || "app_session_id"}=; Max-Age=0; path=/`;
-      } catch (e) {
-        /* ignore */
-      }
+    const logout = useCallback(async () => {
+        try {
+            setLoading(true);
+            await supabase.auth.signOut();
+            setUser(null);
+        } catch (e: any) {
+            setError(e?.message ?? String(e));
+            throw e;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
-      utils.auth.me.setData(undefined, null);
-      await utils.auth.me.invalidate();
-    }
-  }, [logoutMutation, utils]);
-
-  const state = useMemo(() => {
-    localStorage.setItem(
-      "manus-runtime-user-info",
-      JSON.stringify(meQuery.data)
+    const state: UseAuthState = useMemo(
+        () => ({
+            user,
+            loading,
+            error,
+            isAuthenticated: Boolean(user),
+        }),
+        [user, loading, error]
     );
+
     return {
-      user: meQuery.data ?? null,
-      loading: meQuery.isLoading || logoutMutation.isPending,
-      error: meQuery.error ?? logoutMutation.error ?? null,
-      isAuthenticated: Boolean(meQuery.data),
+        ...state,
+        logout,
+        refresh: async () => {
+            setLoading(true);
+            try {
+                const { data } = await supabase.auth.getSession();
+                setUser(data.session?.user ?? null);
+            } finally {
+                setLoading(false);
+            }
+        },
     };
-  }, [
-    meQuery.data,
-    meQuery.error,
-    meQuery.isLoading,
-    logoutMutation.error,
-    logoutMutation.isPending,
-  ]);
-
-  useEffect(() => {
-    if (!redirectOnUnauthenticated) return;
-    if (meQuery.isLoading || logoutMutation.isPending) return;
-    if (state.user) return;
-    if (typeof window === "undefined") return;
-    if (window.location.pathname === redirectPath) return;
-
-    window.location.href = redirectPath;
-  }, [
-    redirectOnUnauthenticated,
-    redirectPath,
-    logoutMutation.isPending,
-    meQuery.isLoading,
-    state.user,
-  ]);
-
-  return {
-    ...state,
-    refresh: () => meQuery.refetch(),
-    logout,
-  };
 }

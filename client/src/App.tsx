@@ -15,7 +15,9 @@ import AdvisorDashboard from "./pages/AdvisorDashboard";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import { useHandleGoogleToken } from "@/_core/hooks/useHandleGoogleToken";
+import WithAuth from "./components/WithAuth";
 
+/* ... */
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
@@ -30,6 +32,8 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/profile" component={Profile} />
       <Route path="/404" component={NotFound} />
+      <Route path="/profile" component={WithAuth(Profile)} />
+      <Route path="/advisor" component={WithAuth(AdvisorDashboard)} />
       {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>
