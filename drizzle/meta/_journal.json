@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1762907238820,
+      "tag": "0000_rare_exodus",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1762907285661,
+      "tag": "0001_gigantic_pretty_boy",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1763297604321,
+      "tag": "0002_mixed_lily_hollister",
+      "breakpoints": true
+    }
+  ]
+}

@@ -1,0 +1,98 @@
+# ============================
+#  Node / Frontend
+# ============================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+.pnp/
+.pnp.js
+
+# ============================
+#  Build / Output
+# ============================
+dist/
+build/
+.next/
+out/
+coverage/
+.cache/
+storybook-static/
+
+# ============================
+#  Environment / Secrets
+# ============================
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+.env.*
+!.env.example   # mantém arquivo de exemplo
+
+# ============================
+#  Editor / Sistema
+# ============================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ============================
+#  Logs
+# ============================
+logs/
+*.log
+*.log.*
+debug.log
+error.log
+
+# ============================
+#  Temporary
+# ============================
+temp/
+tmp/
+*.tmp
+*.pid
+*.seed
+*.pid.lock
+
+# ============================
+#  TypeScript
+# ============================
+*.tsbuildinfo
+
+# ============================
+#  Next.js Cache
+# ============================
+.next/
+.vercel/
+
+# ============================
+#  Tailwind / CSS
+# ============================
+.postcss-cache/
+
+# ============================
+#  Images processed / tools
+# ============================
+*.png.tmp
+*.jpg.tmp
+
+# ============================
+#  Local databases
+# ============================
+*.sqlite
+*.db
+
+# ============================
+#  Supabase
+# ============================
+supabase/.temp
+supabase/.cache
+supabase/functions/node_modules/
+pnpm-lock.yaml
