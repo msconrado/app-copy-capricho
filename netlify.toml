@@ -1,0 +1,25 @@
+## Netlify config for this project
+## Build command: runs the Vite production build
+## Publish directory: where Vite outputs the compiled static site
+
+[build]
+  command = "pnpm exec vite build"
+  publish = "dist/public"
+
+## Optional: pin Node version used during build (adjust if necessary)
+[build.environment]
+  NODE_VERSION = "22.12.0"
+
+## Single Page App redirect: rewrite all routes to index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = true
+
+## Notes:
+## - Do NOT put secret server keys (JWT_SECRET, STRIPE_SECRET_KEY, SUPABASE_SERVICE_ROLE_KEY)
+##   into Netlify's UI as `VITE_` variables. Only add client-side `VITE_` vars here.
+## - Set environment variables in the Netlify Site settings > Build & deploy > Environment.
+## - If you need server-side API routes, deploy the backend to a separate host and
+##   point client variables (e.g. `VITE_FRONTEND_FORGE_API_URL`) to that host.
